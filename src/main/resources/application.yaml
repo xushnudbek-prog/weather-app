@@ -1,1 +1,6 @@
-spring.application.name=weather-app
+spring:
+  application:
+    name: weather-app
+
+openweathermap:
+  api-key: ${WEATHER_API_KEY}

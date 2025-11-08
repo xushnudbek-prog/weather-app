@@ -1,26 +1,42 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: title
+  name: weather-app
   labels:
-    app: title
+    app: weather-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: title
+      app: weather-app
   template:
     metadata:
-      name: title
+      name: weather-app
       labels:
-        app: title
+        app: weather-app
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+      serviceAccountName: weather-app-service-account
       containers:
-        - name: title
-          image: nginx
+        - name: weather-app
+          image: thekhushnud/weather-app:latest
           imagePullPolicy: IfNotPresent
+          env:
+            - name: WEATHER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: weather-app-api-key
+                  key: weather-app-api-key
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               protocol: TCP
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "until curl -f http://weather-app:8080/weather/tashkent; do echo waiting for api; sleep 5; done;"]
       restartPolicy: Always
       
